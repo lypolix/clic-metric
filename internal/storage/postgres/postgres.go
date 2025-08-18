@@ -24,12 +24,13 @@ func New(storagePath string) (*Storage, error) {
 	}
 
 	_, err = db.Exec(`
-			CREATE TABLE IF NOT EXISTS url(
-				id SERIAL PRIMARY KEY, 
-				alias TEXT NOT NULL UNIQUE, 
-				url TEXT NOT NULL
-        	)	
-    	`)
+	CREATE TABLE IF NOT EXISTS url(
+		id SERIAL PRIMARY KEY,
+		alias TEXT NOT NULL UNIQUE,
+		url TEXT NOT NULL,
+		clicks INT DEFAULT 0
+	)
+	`)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -64,7 +65,7 @@ func (s *Storage) SaveURL(urlToSave string, alias string) (int64, error) {
 func (s *Storage) GetURL(alias string) (string, error) {
 	const op = "storage.postgres.GetUTL"
 
-	stmt, err := s.db.Prepare("SELECT url FROM url WHERE alias = ?")
+	stmt, err := s.db.Prepare("SELECT url FROM url WHERE alias = $1")
 
 	if err != nil {
 		return "", fmt.Errorf("%s: prepare statement: %w", op, err)
@@ -81,4 +82,18 @@ func (s *Storage) GetURL(alias string) (string, error) {
 
 	return resURL, nil
 
+}
+
+func (s *Storage) AddClick(alias string) error {
+    _, err := s.db.Exec("UPDATE url SET clicks = clicks + 1 WHERE alias = $1", alias)
+    return err
+}
+
+func (s *Storage) GetClicks(alias string) (int, error) {
+    var clicks int
+    err := s.db.QueryRow("SELECT clicks FROM url WHERE alias = $1", alias).Scan(&clicks)
+    if errors.Is(err, sql.ErrNoRows) {
+        return 0, storage.ErrUrlNotFound
+    }
+    return clicks, err
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"clic-metric/internal/config"
+	"clic-metric/internal/http-server/handlers"
 	"clic-metric/internal/http-server/handlers/redirect"
 	"clic-metric/internal/http-server/handlers/url/save"
 	"clic-metric/internal/http-server/middleware/logger"
@@ -11,7 +12,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	
+
+
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 )
@@ -56,6 +58,8 @@ func main() {
 
 	router.Post("/url", save.New(log, storage))
 	router.Get("/{alias}", redirect.New(log, storage))
+
+	router.Get("/metrics/{alias}", handlers.New(log, storage))
 	
 	log.Info("starting server", slog.String("addres", cfg.Address))
 

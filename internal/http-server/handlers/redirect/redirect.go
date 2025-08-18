@@ -4,10 +4,11 @@ import (
 	"errors"
 	"net/http"
 
+	"log/slog"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"log/slog"
 
 	resp "clic-metric/internal/lib/api/response"
 	"clic-metric/internal/lib/logger/sl"
@@ -17,6 +18,8 @@ import (
 //go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=URLGetter
 type URLGetter interface {
 	GetURL(alias string) (string, error)
+	AddClick(alias string) error
+    GetClicks(alias string) (int, error)
 }
 
 func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
@@ -38,6 +41,7 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 		}
 
 		resURL, err := urlGetter.GetURL(alias)
+
 		if errors.Is(err, storage.ErrUrlNotFound) {
 			log.Info("url not found", "alias", alias)
 
@@ -53,9 +57,14 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 			return
 		}
 
+		if err := urlGetter.AddClick(alias); err != nil {
+			log.Error("failed to update click counter", sl.Err(err))
+		}
+
 		log.Info("got url", slog.String("url", resURL))
 
 		
 		http.Redirect(w, r, resURL, http.StatusFound)
 	}
 }
+
