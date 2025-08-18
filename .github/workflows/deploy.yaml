@@ -32,7 +32,6 @@ jobs:
 
       - name: Download dependencies
         run: go mod download
-
       - name: Build app
         run: go build -o url-shortener ./cmd/url-shortener
 
