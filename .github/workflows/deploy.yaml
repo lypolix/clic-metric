@@ -33,7 +33,7 @@ jobs:
       - name: Download dependencies
         run: go mod download
       - name: Build app
-        run: go build -o url-shortener ./cmd/url-shortener
+        run: go build -o url-shortener ./cmd/clic-metric
 
       - name: Run tests
         run: go test ./...0
