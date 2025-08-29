@@ -12,6 +12,8 @@ type Config struct {
 	Env         string `yaml:"env" env-default:"prod"`
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	HTTPServer  `yaml:"http_server"`
+	Clients ClientsConfig `yaml:"clients"`
+	AppSecret string `yaml:"app_secret" env-required:"true" env:"APP_SECRET"`
 }
 
 type HTTPServer struct {
@@ -22,11 +24,21 @@ type HTTPServer struct {
 	Password    string        `yaml: "password" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
 }
 
+type Client struct {
+	Address      string        `yaml:"address"`
+	Timeout      time.Duration `yaml:"timeout"`
+	RetriesCount int           `yaml:"retriesCount"`
+}
+
+type ClientsConfig struct {
+	SSO Client `yaml:"sso"`
+}
+
 func MustLoad() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
-    if configPath == "" {
-        configPath = "./config/local.yaml"  
-    }
+	if configPath == "" {
+		configPath = "./config/local.yaml"
+	}
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		log.Fatalf("config file does not exist: %s", configPath)
 	}

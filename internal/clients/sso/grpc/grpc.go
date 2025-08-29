@@ -56,6 +56,20 @@ func New(
 	}, nil
 }
 
+func (c *Client) IsAdmin(ctx context.Context, userID int64) (bool, error) {
+	const op = "grpc.IsAdmin"
+
+	resp, err := c.api.IsAdmin(ctx, &ssov1.IsAdminRequest{
+		UserId: userID,
+	})
+
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp.IsAdmin, nil
+}
+
 func InterceptorLogger(l *slog.Logger) grpclog.Logger {
 	return grpclog.LoggerFunc(func(ctx context.Context, lvl grpclog.Level, msg string, fields ...any) {
 		l.Log(ctx, slog.Level(lvl), msg, fields...)

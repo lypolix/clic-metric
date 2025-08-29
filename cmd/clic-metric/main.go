@@ -9,11 +9,11 @@ import (
 	"clic-metric/internal/lib/logger/handlers/slogpretty"
 	"clic-metric/internal/lib/logger/sl"
 	"clic-metric/internal/storage/postgres"
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
-
-
+	ssogrpc "clic-metric/internal/clients/sso/grpc"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 )
@@ -33,6 +33,20 @@ func main() {
 	log.Info("starting clic-metric", slog.String("env", cfg.Env))
 	log.Debug("debug messages are enabled")
 	
+	ssoClient, err := ssogrpc.New(
+		context.Background(), 
+		log, 
+		cfg.Clients.SSO.Address, 
+		cfg.Clients.SSO.Timeout, 
+		cfg.Clients.SSO.RetriesCount,
+	)
+	if err != nil{
+		log.Error("failed to init sso client", sl.Err(err))
+		os.Exit(1)
+	}
+
+	ssoClient.IsAdmin(context.Background(), 1)
+
 	storage, err := postgres.New(cfg.StoragePath)
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
