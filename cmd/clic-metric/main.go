@@ -1,6 +1,7 @@
 package main
 
 import (
+	ssogrpc "clic-metric/internal/clients/sso/grpc"
 	"clic-metric/internal/config"
 	"clic-metric/internal/http-server/handlers"
 	"clic-metric/internal/http-server/handlers/redirect"
@@ -8,12 +9,14 @@ import (
 	"clic-metric/internal/http-server/middleware/logger"
 	"clic-metric/internal/lib/logger/handlers/slogpretty"
 	"clic-metric/internal/lib/logger/sl"
+	eventsender "clic-metric/internal/services/event-sender"
 	"clic-metric/internal/storage/postgres"
 	"context"
 	"log/slog"
 	"net/http"
 	"os"
-	ssogrpc "clic-metric/internal/clients/sso/grpc"
+	"time"
+
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 )
@@ -85,9 +88,14 @@ func main() {
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
-		log.Error("failed to start server")
-	}
+	sender := eventsender.New(storage, log)
+	sender.StartProcessEvents(context.Background(), 5*time.Second)
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error("failed to start server")
+		}
+	}()
 
 	log.Error("server stopped")
 }
