@@ -54,8 +54,8 @@ Clic-Metric — корпоративный сервис для сокращен�
 > Пример запроса:  
 > ```
 > curl -u myuser:mypassword -X POST http://localhost:8080/url \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com/long-url-to-shorten"}'
+>  -H "Content-Type: application/json" \
+>  -d '{"url": "https://example.com/long-url-to-shorten"}'
 > ```
 
 ---
