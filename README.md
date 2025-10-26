@@ -53,7 +53,9 @@ Clic-Metric — корпоративный сервис для сокращен�
 
 > Пример запроса:  
 > ```
-> curl -u user:password -X POST http://yourdomain/url -d '{"url":"https://..." }'
+> curl -u myuser:mypassword -X POST http://localhost:8080/url \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/long-url-to-shorten"}'
 > ```
 
 ---
@@ -67,7 +69,7 @@ Clic-Metric — корпоративный сервис для сокращен�
 - Реализованы повторы на сетевые ошибки и логирование входящих/исходящих запросов
 - Конфигурация адреса и параметров клиента берётся из секции `clients.sso` в yaml-конфиге
 
-// Пример инициализации SSO клиента
+> Пример инициализации SSO клиента
 ```
 ssoClient, err := ssogrpc.New(ctx, log, cfg.Clients.SSO.Address, cfg.Clients.SSO.Timeout, cfg.Clients.SSO.RetriesCount)
 ```
